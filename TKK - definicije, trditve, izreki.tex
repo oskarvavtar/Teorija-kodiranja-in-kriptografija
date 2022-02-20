@@ -1,0 +1,195 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[slovene]{babel}
+
+\usepackage{amsthm}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{relsize}
+\usepackage{mathrsfs}
+\usepackage{bbm}
+\usepackage{xcolor}
+\usepackage{algpseudocode}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\renewcommand{\c}{\mathsf{c}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\oklepaj}[1]{\left(#1\right)}
+\newcommand{\1}{\mathbbm{1}}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\5}{\vspace{0.5cm}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\renewcommand{\gcd}[1]{\mathtt{gcd}{(#1)}}
+
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\B}{\mathscr{B}}
+\newcommand{\C}{\mathscr{C}}
+\newcommand{\D}{\mathscr{D}}
+\newcommand{\E}{\mathscr{E}}
+\newcommand{\K}{\mathscr{K}}
+
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+
+\theoremstyle{definition}
+\newtheorem{definicija}{Definicija}[section]
+
+\theoremstyle{definition}
+\newtheorem{trditev}{Trditev}[section]
+
+\theoremstyle{definition}
+\newtheorem{izrek}{Izrek}[section]
+
+\theoremstyle{definition}
+\newtheorem{metoda}{Metoda}[section]
+
+\newtheorem*{posledica}{Posledica}
+\newtheorem*{opomba}{Opomba}
+\newtheorem*{komentar}{Komentar}
+\newtheorem{lema}{Lema}
+\newtheorem*{dokaz}{Dokaz}
+\newtheorem*{posplošitev}{Posplošitev}
+\newtheorem*{dogovor}{Dogovor}
+\newtheorem*{sklep}{Sklep}
+\newtheorem*{oznake}{Oznake}
+\newtheorem{sifra}{Šifra}
+\newtheorem{algoritem}{Algoritem}
+
+\title{Teorija kodiranja in kriptografija - definicije, trditve in izreki}
+\author{Oskar Vavtar \\
+po predavanjih profesorice Arjane Žitnik}
+\date{2021/22}
+
+\begin{document}
+\maketitle
+\pagebreak
+\tableofcontents
+\pagebreak
+
+% #################################################################################################
+
+\section{Klasične šifre}
+\5
+
+\definicija{\textit{Kriptosistem} je peterka $(\B,\C,\K,\E,\D)$, kjer so
+\begin{itemize}
+	\item $\B$ končna množica besedil,
+	\item $\C$ končna množica kriptogramov,
+	\item $\K$ končna množica ključev,
+	\item $\E = \set{E_k: \B \ra \C \mid k \in \K}$ družina kodirnih funkcij,
+	\item $\D = \set{D_k: \C \ra \B \mid k \in \K}$ družina dekodirnih funkcij,
+\end{itemize}
+
+tako, da velja 
+$$\forall e \in \K, \exists d \in \K: ~D_d(E_e(x)) ~=~ x, \quad \forall x \in \B.$$}
+\5
+
+\trditev{Vsaka kodirna funkcija $E_k \in \E$ je injektivna.}
+\5
+
+\sifra[Cezarjeva/s pomikom]{a, b, c,\ldots, ž označimo z 0, 1, 2,\ldots, 24.
+\begin{itemize}
+	\item $\B = \C = \K = \set{0,1,2,\ldots,24} = \Z_{25}$
+	\item kodiranje: $E_k(x) \equiv x + k \Mod{25}$
+	\item dekodiranja: $D_k(y) \equiv y - k \Mod{25}$
+\end{itemize}
+Računamo torej v grupi $(\Z_{25},+)$.}
+\5
+
+\algoritem[Izčrpno iskanje ključev]{~
+\begin{itemize}
+	\item Podatki: $x \in \B, y \in \C$ za kriptosistem $(\B,\C,\K,\E,\D)$
+	\item Iščemo: $k \in \K$, za katerega je $E_k(x) = y$
+\end{itemize}
+\begin{algorithmic}
+\For{$k \in \K$}
+	\If{$E_k(x) = y$}
+		\Return $k$
+	\EndIf
+\EndFor
+\end{algorithmic}
+\noindent Deluje za majhne $|\K|$. Kriptosistem je \textit{razbit}, če lahko ključ najdemo ``dosti hitreje'' kot s preverjanjem vseh ključev.}
+\5
+
+\subsection*{Razširjen evklidov algoritem}
+\5
+
+\izrek[Osnovni izrek o deljenju]{Naj bosta $a \in \Z$ in $b \in \N$. Potem obstajata enolično določeni $q,r \in \Z$, $0 \leq r \leq b$, da velja
+$$a ~=~ q \cdot b + r.$$}
+\5
+
+\algoritem[Evklidov algoritem]{~
+\begin{itemize}
+	\item Vhod: $a,b \in \N$
+	\item Izhod: $\gcd{a,b}$
+\end{itemize} 
+\begin{algorithmic}
+\State $r_0 = a$
+\State $r_1 = b$
+\While{$r_{n+1} \neq 0$}
+	\State $q_i = r_{i-1}/r_i$
+	\Comment{``grdo'' deljenje brez ostanka}
+	\State $r_{i+1} = r_{i-1} - q_i \cdot r_i$
+\EndWhile \\
+\Return $r_n$
+\end{algorithmic}}
+\5
+
+\algoritem[Razširjeni Evklidov algoritem]{~
+\begin{itemize}
+	\item Vhod: $a,b \in \N$
+	\item Izhod: $(r,s,t)$; $r = \gcd{a,b}$, $s \cdot a + t \cdot b = \gcd{a,b}$
+\end{itemize} 
+\begin{algorithmic}
+\State $r_0 = a$, $s_0 = 1$, $t_0 = 0$
+\State $r_1 = b$, $s_1 = 0$, $t_1 = 1$
+\While{$r_{n+1} \neq 0$}
+	\State $q_i = r_{i-1}/r_i$
+	\Comment{``grdo'' deljenje brez ostanka}
+	\State $r_{i+1} = r_{i-1} - q_i \cdot r_i$
+	\State $s_{i+1} = s_{i-1} - q_i \cdot s_i$
+	\State $t_{i+1} = t_{i-1} - q_i \cdot t_i$
+\EndWhile \\
+\Return $(r_n,s_n,t_n)$
+\end{algorithmic}}
+\5
+
+\trditev{$$s_n \cdot a + t_n \cdot b ~=~ \gcd{a,b}$$}
+\5
+
+\definicija{\begin{align*}
+\Z_n^* ~&=~ \set{i \in \set{1,\ldots,n-1} \mid i \perp n} ~=~ \set{i \in \set{1,\ldots,n-1} \mid \gcd{i,n}=1}\\
+|Z_n^*| ~&=~ \varphi(n)
+\end{align*}
+Za $n = p_1^{\alpha_1}\cdot\ldots\cdot p_k^{\alpha_k}$ je
+$$\varphi(n) ~=~ (p_1-1)p_1^{\alpha_1 - 1} \cdot \ldots \cdot (p_k-1)p_k^{\alpha_k-1}.$$ }
+\5
+
+\sifra[Afina]{~
+\begin{itemize}
+	\item $\B = \C = \Z_{25}$, $\K = \Z_{25}^* \times \Z_{25}$
+	\item ključ: $(a,b) \in \K$
+	\item kodiranje: $E_{(a,b)}(x) = ax + b \Mod{25}$
+	\item dekodiranje: $D_{(a,b)}(y) = a^{-1}(y-b) \Mod{25}$
+\end{itemize}
+$$D_{(a,b)}(E_{(a,b)}(x)) ~=~ a^{-1}\oklepaj{(ax+b)-b} ~=~ x$$}
+\5
+
+\sifra[Hillova]{~
+\begin{itemize}
+	\item $\B = \C = \Z_{25}^n$, $\K = \set{\A \in \Z_{25}^{n \times n} \mid \det(\A) \in \Z_{25}^*}$
+	\item ključ: $\A \in \K$
+	\item kodiranje: $E_\A(\x) = \A\x \Mod{25}$
+	\item dekodiranje: $D_\A(\y) = \A^{-1}\y \Mod{25}$
+\end{itemize}
+$$D_\A(E_\A(\x)) ~=~ \A^{-1}\A\x ~=~ \x$$}
+\5
+
+
+
+% #################################################################################################
+
+
+\end{document}
